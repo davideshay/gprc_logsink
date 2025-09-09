@@ -21,15 +21,26 @@ type server struct {
 	file *os.File
 }
 
+// StreamAccessLogs handles the bidirectional gRPC stream from Envoy
 func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccessLogsServer) error {
 	for {
 		msg, err := stream.Recv()
 		if err != nil {
 			return err
 		}
-		for _, logEntry := range msg.HttpLogs.LogEntry {
-			data, _ := json.Marshal(logEntry)
-			s.file.Write(append(data, '\n'))
+
+		switch entries := msg.LogEntries.(type) {
+		case *accesslog.StreamAccessLogsMessage_HttpLogs:
+			for _, logEntry := range entries.HttpLogs.LogEntry {
+				data, _ := json.Marshal(logEntry)
+				s.file.Write(append(data, '\n'))
+			}
+
+		case *accesslog.StreamAccessLogsMessage_TcpLogs:
+			for _, logEntry := range entries.TcpLogs.LogEntry {
+				data, _ := json.Marshal(logEntry)
+				s.file.Write(append(data, '\n'))
+			}
 		}
 	}
 }
@@ -67,9 +78,9 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	accesslog.RegisterAccessLogServiceServer(grpcServer, &server{file: f})
-	slog.Info("ALS gRPC server running on :", port)
+	slog.Info("ALS gRPC server running on :" + port)
 	if err := grpcServer.Serve(lis); err != nil {
-		slog.Error("failed to serve: %v", err)
+		slog.Error("failed to serve: ")
 	}
 
 	// Setup graceful shutdown
