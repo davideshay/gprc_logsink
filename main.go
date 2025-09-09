@@ -23,6 +23,7 @@ type server struct {
 
 // StreamAccessLogs handles the bidirectional gRPC stream from Envoy
 func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccessLogsServer) error {
+	slog.Info("Received a log message.... saving to file...")
 	for {
 		msg, err := stream.Recv()
 		if err != nil {
