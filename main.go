@@ -57,7 +57,7 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 					"waf_violation": resp.ResponseHeaders["x-waf-violation"],
 				}
 
-				tmpdata, _ := json.Marshal(resp.ResponseHeaders)
+				tmpdata, _ := json.Marshal(logEntry)
 				slog.Info(string(tmpdata))
 
 				data, _ := json.Marshal(out)
