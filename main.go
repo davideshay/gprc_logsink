@@ -49,12 +49,11 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 					"bytes_sent":     resp.ResponseBodyBytes,
 					"bytes_received": req.RequestBodyBytes,
 					"duration":       common.TimeToLastDownstreamTxByte.AsDuration().Milliseconds(),
-					"upstream_host":  common.UpstreamCluster,
+					"upstream_host":  common.UpstreamRemoteAddress.Address,
 					"source_ip":      common.DownstreamRemoteAddress.GetSocketAddress().GetAddress(),
 					"user_agent":     req.UserAgent,
 					"forwarded_for":  req.ForwardedFor,
-					// This one depends on whether you’ve injected the header in Envoy:
-					"waf_violation": resp.ResponseHeaders["x-waf-violation"],
+					"waf_violation":  resp.ResponseHeaders["x-waf-violation"],
 				}
 
 				tmpdata, _ := json.Marshal(logEntry)
