@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"log/slog"
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"gprc-logsink/internal/logging"
@@ -56,6 +58,14 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 					// This one depends on whether you’ve injected the header in Envoy:
 					"waf_violation": resp.ResponseHeaders["x-waf-violation"],
 				}
+
+				pairs := make([]string, 0, len(resp.ResponseHeaders))
+				for k, v := range resp.ResponseHeaders {
+					pairs = append(pairs, fmt.Sprintf("%s: %s", k, v))
+				}
+				pairsList := strings.Join(pairs, ", ")
+
+				slog.Info("Response Headers:" + pairsList)
 
 				data, _ := json.Marshal(out)
 				s.file.Write(append(data, '\n'))
