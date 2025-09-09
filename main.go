@@ -46,7 +46,7 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 					}
 				}
 
-				out := map[string]interface{}{
+				out := map[string]any{
 					"start_time":       common.StartTime.AsTime().Format("2006-01-02T15:04:05.000Z07:00"),
 					"method":           req.RequestMethod.String(),
 					"authority":        req.Authority,
@@ -61,6 +61,7 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 					"source_ip":        common.DownstreamRemoteAddress.GetSocketAddress().GetAddress(),
 					"user_agent":       req.UserAgent,
 					"forwarded_for":    req.ForwardedFor,
+					"request_id":       common.StreamId,
 					"waf_violation":    resp.ResponseHeaders["x-waf-violation"],
 				}
 
@@ -112,7 +113,7 @@ func main() {
 	accesslog.RegisterAccessLogServiceServer(grpcServer, &server{file: f})
 	slog.Info("ALS gRPC server running on : " + port)
 	if err := grpcServer.Serve(lis); err != nil {
-		slog.Error("failed to serve: ")
+		slog.Error("failed to serve: " + err.Error())
 	}
 
 	// Setup graceful shutdown
