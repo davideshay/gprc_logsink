@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"log/slog"
 	"net"
@@ -39,6 +40,13 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 				resp := logEntry.Response
 				common := logEntry.CommonProperties
 
+				var upstreamHost string
+				if addr := common.UpstreamRemoteAddress; addr != nil {
+					if sa := addr.GetSocketAddress(); sa != nil {
+						upstreamHost = fmt.Sprintf("%s:%d", sa.Address, sa.GetPortValue())
+					}
+				}
+
 				out := map[string]interface{}{
 					"start_time":     common.StartTime.AsTime().Format("2006-01-02T15:04:05.000Z07:00"),
 					"method":         req.RequestMethod.String(),
@@ -49,7 +57,7 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 					"bytes_sent":     resp.ResponseBodyBytes,
 					"bytes_received": req.RequestBodyBytes,
 					"duration":       common.TimeToLastDownstreamTxByte.AsDuration().Milliseconds(),
-					"upstream_host":  common.UpstreamRemoteAddress.Address,
+					"upstream_host":  upstreamHost,
 					"source_ip":      common.DownstreamRemoteAddress.GetSocketAddress().GetAddress(),
 					"user_agent":     req.UserAgent,
 					"forwarded_for":  req.ForwardedFor,
