@@ -24,7 +24,6 @@ type server struct {
 
 // StreamAccessLogs handles the bidirectional gRPC stream from Envoy
 func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccessLogsServer) error {
-	slog.Info("Received a log message.... saving to file...")
 	for {
 		msg, err := stream.Recv()
 		if err != nil {
@@ -64,9 +63,6 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 					"forwarded_for":    req.ForwardedFor,
 					"waf_violation":    resp.ResponseHeaders["x-waf-violation"],
 				}
-
-				tmpdata, _ := json.Marshal(logEntry)
-				slog.Info(string(tmpdata))
 
 				data, _ := json.Marshal(out)
 				s.file.Write(append(data, '\n'))
