@@ -52,7 +52,7 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 					"method":           req.RequestMethod.String(),
 					"authority":        req.Authority,
 					"path":             req.Path,
-					"protocol":         logEntry.ProtocolVersion.String(),
+					"protocol":         logEntry.ProtocolVersion,
 					"status":           resp.ResponseCode.GetValue(),
 					"bytes_sent":       resp.ResponseBodyBytes,
 					"bytes_received":   req.RequestBodyBytes,
@@ -114,7 +114,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	accesslog.RegisterAccessLogServiceServer(grpcServer, &server{file: f})
-	slog.Info("ALS gRPC server running on :" + port)
+	slog.Info("ALS gRPC server running on : " + port)
 	if err := grpcServer.Serve(lis); err != nil {
 		slog.Error("failed to serve: ")
 	}
