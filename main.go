@@ -48,20 +48,21 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 				}
 
 				out := map[string]interface{}{
-					"start_time":     common.StartTime.AsTime().Format("2006-01-02T15:04:05.000Z07:00"),
-					"method":         req.RequestMethod.String(),
-					"authority":      req.Authority,
-					"path":           req.Path,
-					"protocol":       logEntry.ProtocolVersion.String(),
-					"status":         resp.ResponseCode.GetValue(),
-					"bytes_sent":     resp.ResponseBodyBytes,
-					"bytes_received": req.RequestBodyBytes,
-					"duration":       common.TimeToLastDownstreamTxByte.AsDuration().Milliseconds(),
-					"upstream_host":  upstreamHost,
-					"source_ip":      common.DownstreamRemoteAddress.GetSocketAddress().GetAddress(),
-					"user_agent":     req.UserAgent,
-					"forwarded_for":  req.ForwardedFor,
-					"waf_violation":  resp.ResponseHeaders["x-waf-violation"],
+					"start_time":       common.StartTime.AsTime().Format("2006-01-02T15:04:05.000Z07:00"),
+					"method":           req.RequestMethod.String(),
+					"authority":        req.Authority,
+					"path":             req.Path,
+					"protocol":         logEntry.ProtocolVersion.String(),
+					"status":           resp.ResponseCode.GetValue(),
+					"bytes_sent":       resp.ResponseBodyBytes,
+					"bytes_received":   req.RequestBodyBytes,
+					"duration":         common.TimeToLastDownstreamTxByte.AsDuration().Milliseconds(),
+					"upstream_host":    upstreamHost,
+					"upstream_service": common.UpstreamCluster,
+					"source_ip":        common.DownstreamRemoteAddress.GetSocketAddress().GetAddress(),
+					"user_agent":       req.UserAgent,
+					"forwarded_for":    req.ForwardedFor,
+					"waf_violation":    resp.ResponseHeaders["x-waf-violation"],
 				}
 
 				tmpdata, _ := json.Marshal(logEntry)
