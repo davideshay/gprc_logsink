@@ -54,10 +54,10 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 					"user_agent":     req.UserAgent,
 					"forwarded_for":  req.ForwardedFor,
 					// This one depends on whether you’ve injected the header in Envoy:
-					"waf_violation": req.RequestHeaders["x-waf-violation"],
+					"waf_violation": resp.ResponseHeaders["x-waf-violation"],
 				}
 
-				tmpdata, _ := json.Marshal(req.RequestHeaders)
+				tmpdata, _ := json.Marshal(resp.ResponseHeaders)
 				slog.Info(string(tmpdata))
 
 				data, _ := json.Marshal(out)
