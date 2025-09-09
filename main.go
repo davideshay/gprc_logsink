@@ -13,6 +13,7 @@ import (
 
 	"gprc-logsink/internal/logging"
 
+	datav3 "github.com/envoyproxy/go-control-plane/envoy/data/accesslog/v3"
 	accesslog "github.com/envoyproxy/go-control-plane/envoy/service/accesslog/v3"
 	"google.golang.org/grpc"
 )
@@ -20,6 +21,21 @@ import (
 type server struct {
 	accesslog.UnimplementedAccessLogServiceServer
 	file *os.File
+}
+
+func formatProtocol(v datav3.HTTPAccessLogEntry_HTTPVersion) string {
+	switch v {
+	case datav3.HTTPAccessLogEntry_HTTP10:
+		return "HTTP/1.0"
+	case datav3.HTTPAccessLogEntry_HTTP11:
+		return "HTTP/1.1"
+	case datav3.HTTPAccessLogEntry_HTTP2:
+		return "HTTP/2"
+	case datav3.HTTPAccessLogEntry_HTTP3:
+		return "HTTP/3"
+	default:
+		return "UNKNOWN"
+	}
 }
 
 // StreamAccessLogs handles the bidirectional gRPC stream from Envoy
@@ -51,7 +67,7 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 					"method":           req.RequestMethod.String(),
 					"authority":        req.Authority,
 					"path":             req.Path,
-					"protocol":         logEntry.ProtocolVersion,
+					"protocol":         formatProtocol(logEntry.GetProtocolVersion()),
 					"status":           resp.ResponseCode.GetValue(),
 					"bytes_sent":       resp.ResponseBodyBytes,
 					"bytes_received":   req.RequestBodyBytes,
