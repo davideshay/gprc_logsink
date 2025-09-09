@@ -33,7 +33,31 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 		switch entries := msg.LogEntries.(type) {
 		case *accesslog.StreamAccessLogsMessage_HttpLogs:
 			for _, logEntry := range entries.HttpLogs.LogEntry {
-				data, _ := json.Marshal(logEntry)
+
+				// Helper shortcuts
+				req := logEntry.Request
+				resp := logEntry.Response
+				common := logEntry.CommonProperties
+
+				out := map[string]interface{}{
+					"start_time":     common.StartTime.AsTime().Format("2006-01-02T15:04:05.000Z07:00"),
+					"method":         req.RequestMethod.String(),
+					"authority":      req.Authority,
+					"path":           req.Path,
+					"protocol":       logEntry.ProtocolVersion.String(),
+					"status":         resp.ResponseCode.GetValue(),
+					"bytes_sent":     resp.ResponseBodyBytes,
+					"bytes_received": req.RequestBodyBytes,
+					"duration":       common.TimeToLastDownstreamTxByte.AsDuration().Milliseconds(),
+					"upstream_host":  common.UpstreamCluster,
+					"source_ip":      common.DownstreamRemoteAddress.GetSocketAddress().GetAddress(),
+					"user_agent":     req.UserAgent,
+					"forwarded_for":  req.ForwardedFor,
+					// This one depends on whether you’ve injected the header in Envoy:
+					"waf_violation": resp.ResponseHeaders["x-waf-violation"],
+				}
+
+				data, _ := json.Marshal(out)
 				s.file.Write(append(data, '\n'))
 			}
 
