@@ -65,6 +65,9 @@ func (s *server) StreamAccessLogs(stream accesslog.AccessLogService_StreamAccess
 				}
 				pairsList := strings.Join(pairs, ", ")
 
+				tmpdata, _ := json.Marshal(logEntry)
+				slog.Info(string(tmpdata))
+
 				slog.Info("Response Headers:" + pairsList)
 
 				data, _ := json.Marshal(out)
